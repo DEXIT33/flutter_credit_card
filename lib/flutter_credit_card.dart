@@ -12,11 +12,12 @@ class CreditCardWidget extends StatefulWidget {
     @required this.cardHolderName,
     @required this.cvvCode,
     @required this.showBackView,
+    @required this.backgroundGradientColor,
     this.animationDuration = const Duration(milliseconds: 500),
     this.height,
     this.width,
     this.textStyle,
-    this.cardbgColor = const Color(0xff1b447b),
+    this.cvvTextStyle,
   })  : assert(cardNumber != null),
         assert(showBackView != null),
         super(key: key);
@@ -26,7 +27,8 @@ class CreditCardWidget extends StatefulWidget {
   final String cardHolderName;
   final String cvvCode;
   final TextStyle textStyle;
-  final Color cardbgColor;
+  final TextStyle cvvTextStyle;
+  final Gradient backgroundGradientColor;
   final bool showBackView;
   final Duration animationDuration;
   final double height;
@@ -36,12 +38,10 @@ class CreditCardWidget extends StatefulWidget {
   _CreditCardWidgetState createState() => _CreditCardWidgetState();
 }
 
-class _CreditCardWidgetState extends State<CreditCardWidget>
-    with SingleTickerProviderStateMixin {
+class _CreditCardWidgetState extends State<CreditCardWidget> with SingleTickerProviderStateMixin {
   AnimationController controller;
   Animation<double> _frontRotation;
   Animation<double> _backRotation;
-  Gradient backgroundGradientColor;
 
   bool isAmex = false;
 
@@ -55,26 +55,11 @@ class _CreditCardWidgetState extends State<CreditCardWidget>
       vsync: this,
     );
 
-    backgroundGradientColor = LinearGradient(
-      // Where the linear gradient begins and ends
-      begin: Alignment.topRight,
-      end: Alignment.bottomLeft,
-      // Add one stop for each color. Stops should increase from 0 to 1
-      stops: const [0.1, 0.4, 0.7, 0.9],
-      colors: [
-        widget.cardbgColor.withOpacity(1),
-        widget.cardbgColor.withOpacity(0.97),
-        widget.cardbgColor.withOpacity(0.90),
-        widget.cardbgColor.withOpacity(0.86),
-      ],
-    );
-
     ///Initialize the Front to back rotation tween sequence.
     _frontRotation = TweenSequence(
       <TweenSequenceItem<double>>[
         TweenSequenceItem<double>(
-          tween: Tween(begin: 0.0, end: pi / 2)
-              .chain(CurveTween(curve: Curves.easeIn)),
+          tween: Tween(begin: 0.0, end: pi / 2).chain(CurveTween(curve: Curves.easeIn)),
           weight: 50.0,
         ),
         TweenSequenceItem<double>(
@@ -91,8 +76,7 @@ class _CreditCardWidgetState extends State<CreditCardWidget>
           weight: 50.0,
         ),
         TweenSequenceItem<double>(
-          tween: Tween(begin: -pi / 2, end: 0.0)
-              .chain(CurveTween(curve: Curves.easeOut)),
+          tween: Tween(begin: -pi / 2, end: 0.0).chain(CurveTween(curve: Curves.easeOut)),
           weight: 50.0,
         ),
       ],
@@ -157,16 +141,12 @@ class _CreditCardWidgetState extends State<CreditCardWidget>
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          const BoxShadow(
-              color: Colors.black26, offset: Offset(0, 0), blurRadius: 24)
-        ],
-        gradient: backgroundGradientColor,
+        boxShadow: [const BoxShadow(color: Colors.black26, offset: Offset(0, 0), blurRadius: 24)],
+        gradient: widget.backgroundGradientColor,
       ),
       margin: const EdgeInsets.all(16),
       width: widget.width ?? width,
-      height: widget.height ??
-          (orientation == Orientation.portrait ? height / 4 : height / 2),
+      height: widget.height ?? (orientation == Orientation.portrait ? height / 4 : height / 2),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -200,11 +180,9 @@ class _CreditCardWidgetState extends State<CreditCardWidget>
                       child: Padding(
                         padding: const EdgeInsets.all(5),
                         child: Text(
-                          widget.cvvCode.isEmpty
-                              ? isAmex ? 'XXXX' : 'XXX'
-                              : widget.cvvCode,
+                          widget.cvvCode.isEmpty ? isAmex ? 'XXXX' : 'XXX' : widget.cvvCode,
                           maxLines: 1,
-                          style: widget.textStyle ?? defaultTextStyle,
+                          style: widget.cvvTextStyle ?? defaultTextStyle,
                         ),
                       ),
                     ),
@@ -251,15 +229,11 @@ class _CreditCardWidgetState extends State<CreditCardWidget>
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          const BoxShadow(
-              color: Colors.black26, offset: Offset(0, 0), blurRadius: 24)
-        ],
-        gradient: backgroundGradientColor,
+        boxShadow: [const BoxShadow(color: Colors.black26, offset: Offset(0, 0), blurRadius: 24)],
+        gradient: widget.backgroundGradientColor,
       ),
       width: widget.width ?? width,
-      height: widget.height ??
-          (orientation == Orientation.portrait ? height / 4 : height / 2),
+      height: widget.height ?? (orientation == Orientation.portrait ? height / 4 : height / 2),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -352,8 +326,7 @@ class _CreditCardWidgetState extends State<CreditCardWidget>
       (CardType type, Set<List<String>> patterns) {
         for (List<String> patternRange in patterns) {
           // Remove any spaces
-          String ccPatternStr =
-              cardNumber.replaceAll(RegExp(r'\s+\b|\b\s'), '');
+          String ccPatternStr = cardNumber.replaceAll(RegExp(r'\s+\b|\b\s'), '');
           final int rangeLen = patternRange[0].length;
           // Trim the Credit Card number string to match the pattern prefix length
           if (rangeLen < cardNumber.length) {
@@ -526,8 +499,7 @@ class MaskedTextController extends TextEditingController {
 
   void moveCursorToEnd() {
     final String text = _lastUpdatedText;
-    selection =
-        TextSelection.fromPosition(TextPosition(offset: (text ?? '').length));
+    selection = TextSelection.fromPosition(TextPosition(offset: (text ?? '').length));
   }
 
   @override
